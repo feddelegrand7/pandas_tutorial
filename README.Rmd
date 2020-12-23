@@ -1,0 +1,159 @@
+---
+title: "Introduction to pandas"
+output: md_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Importing the `pandas` library
+
+```{r, echo=FALSE}
+library(reticulate)
+
+use_condaenv("r-reticulate")
+```
+
+When we import `pandas` in Python, we generally use the `pd` acronym. As such, instead of writing `pandas.shape` we can just type `pd.shape`. As you've noticed this is just a matter of convenience nonetheless it's important to follow the community's conventions, that's why I highly encourage you to always work with the `pd` acronym.
+
+```{python}
+import pandas as pd
+```
+
+# Reading a `csv` file in pandas 
+
+Using the `read_csv()` function we can read either a local `csv` file or as in the following a remote `csv` file. We'll work with the __penguins__ data frame which is provided by the  [palmerpenguins](https://allisonhorst.github.io/palmerpenguins/) `R` package. 
+
+> feel free to copy paste the URL below to check out the data frame in a raw format
+
+```{python}
+URL = "https://gist.githubusercontent.com/feddelegrand7/2f32818389d58eb62e8e47ff08751415/raw/9c2debfc2277aba6c227a0b1746f4af78c9798fe/penguins.csv"
+penguins = pd.read_csv(URL)
+```
+
+
+# Getting an overview of the data frame 
+
+Before any analysis, it's useful to get some basic information about the structure of a data frame. Here `df.shape()` will print out the number of rows and columns in a `tuple` format: 
+
+
+```{python}
+penguins.shape
+```
+OK ! it's obvious that our `penguins` data frame contains 344 rows and 8 columns. Now, will use `penguins.head(3)` in order to display the first 3 rows: 
+
+```{python}
+penguins.head(3)
+```
+
+If you're working with a data frame that is too wide and you need a list of the columns' names, you can use the `columns` attribute: 
+
+
+```{python}
+penguins.columns
+```
+
+It's also possible to print out the row-index of the data frame using the `index` attribute. 
+
+
+```{python}
+penguins.index
+```
+
+
+The `info()` method is a pretty cool tool that helps get an overall understanding of the structure of our data. It prints out in order: 
+
+- The class of the data frame : `DataFrame` 
+- The range of the index: `344` rows
+- The number of __non-missing__ values, here spotted as `non-null` 
+- The type of each column or `Dtype`. Here we have two types of columns: 
+  1. `object`: you can think of it as a character string column; 
+  2. `float64`: a numeric column
+- Lastly, we get the `memory usage` which provides an idea about the memory size of our data frame. 
+
+
+```{python}
+penguins.info()
+
+```
+ 
+
+
+# Selecting a column in pandas 
+
+There are two ways of selecting columns in `pandas`, we can do: 
+
+1. `df['column_name']` or: 
+2. `df.column_name`.
+
+for many reasons that will become obvious later, you should always use the first syntax.
+
+
+In our example, let's say that we wanted to select the `species` column, we can do: 
+
+```{python}
+
+penguins['species']
+
+```
+
+__Important__ `r emo::ji('alembic')` : a column taken individually has a special form and a special type called `pandas Series`. To summarize a `pandas` data frame has a `DataFrame` class and is composed of several columns that taken __individually__ have a `Series` class. 
+
+```{python}
+type(penguins['species'])
+```
+
+
+Now let's select multiple columns, maybe `species`, `island` and `bill_length_mm`.
+
+
+```{python, error=TRUE}
+penguins['species', 'island', 'bill_length_mm']
+
+```
+
+We got an error `r emo::ji('angry')` !!! what happened ? in fact there is a dialogue here: 
+
+> pandas: you want to select multiple column ? 
+> me: Yes! please !!!
+> pandas: OK! but I want a __list []__ of columns, in other words, the columns must be provided inside a list ! otherwise you'll get an error !!!!
+> me: emo::ji('unamused')
+
+
+So the correct way of subsetting columns is: 
+
+```{python}
+penguins[['species', 'island', 'bill_length_mm']]
+
+```
+
+Works like a charm `r emo::ji('unamused')`
+
+# Removing a column 
+
+
+We've a perfect data frame to play, why would we dare remove a column or two ??? just for the sake of the example ... ok that's was the joke of the day, now let's get into serious stuffs. 
+
+The `drop()` method allows us to remove the columns that we specify. Let's get rid of `species` and `island`: 
+
+```{python}
+penguins_drop = penguins.drop(columns= ['species', 'island'])
+penguins_drop.head(5)
+```
+
+
+# Renaming columns 
+
+When renaming a column, `pandas` expect that you define a `dictionary` as follows: 
+
+`{'current_name' : 'new_name'}`
+
+So if for example, we wanted to change the name of `species` and  `island` to respectively `penguin_name` and `land`, we can proceed as follows: 
+
+
+```{python, message = FALSE, message=FALSE, warning=FALSE}
+penguins.rename({'species': 'penguin_name', 'island':'land'}, 
+                axis = 'columns')
+```
+and voila ! here we had to set `axis = 'columns'` to specify that we're renaming columns not indexes (which is the default)
