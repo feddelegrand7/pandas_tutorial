@@ -11,7 +11,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, echo=FALSE}
 library(reticulate)
-
 use_condaenv("r-reticulate")
 ```
 
@@ -21,139 +20,276 @@ When we import `pandas` in Python, we generally use the `pd` acronym. As such, i
 import pandas as pd
 ```
 
-# Reading a `csv` file in pandas 
+When we import `pandas` in Python, we generally use the `pd` acronym. As such, instead of writing `pandas.shape` we can just type `pd.shape`. As you've noticed this is just a matter of convenience nonetheless it's important to follow the community's conventions, that's why I highly encourage you to always work with the `pd` acronym.
 
-Using the `read_csv()` function we can read either a local `csv` file or as in the following a remote `csv` file. We'll work with the __penguins__ data frame which is provided by the  [palmerpenguins](https://allisonhorst.github.io/palmerpenguins/) `R` package. 
+```{python}
+import pandas as pd
+```
+
+
+# Reading a `csv` file in pandas
+
+# Reading a `csv` file in pandas
+
+Using the `read_csv()` function we can read either a local `csv` file or as in the following a remote `csv` file. We'll work with the **penguins** data frame which is provided by the [palmerpenguins](https://allisonhorst.github.io/palmerpenguins/) `R` package.
 
 > feel free to copy paste the URL below to check out the data frame in a raw format
 
 ```{python}
-URL = "https://gist.githubusercontent.com/feddelegrand7/2f32818389d58eb62e8e47ff08751415/raw/9c2debfc2277aba6c227a0b1746f4af78c9798fe/penguins.csv"
+URL = "https://raw.githubusercontent.com/allisonhorst/palmerpenguins/master/inst/extdata/penguins.csv"
 penguins = pd.read_csv(URL)
 ```
 
+# Getting an overview of the data frame
 
-# Getting an overview of the data frame 
-
-Before any analysis, it's useful to get some basic information about the structure of a data frame. Here `df.shape()` will print out the number of rows and columns in a `tuple` format: 
-
+Before any analysis, it's useful to get some basic information about the structure of a data frame. Here `df.shape()` will print out the number of rows and columns in a `tuple` format:
 
 ```{python}
 penguins.shape
 ```
-OK ! it's obvious that our `penguins` data frame contains 344 rows and 8 columns. Now, will use `penguins.head(3)` in order to display the first 3 rows: 
 
-```{python}
+OK ! it's obvious that our `penguins` data frame contains 344 rows and 8 columns. Now, will use `penguins.head(3)` in order to display the first 3 rows:
+
+
+
+```{python, out.width = "1000px"}
 penguins.head(3)
 ```
 
-If you're working with a data frame that is too wide and you need a list of the columns' names, you can use the `columns` attribute: 
-
+Did you notice the `...` ? it just means that when the data frame is too wide, pandas truncates (hide) some columns in order to print nicely. It does the same when printing many rows. In order to deal with this situation we can print the column names using `columns` attribute:
 
 ```{python}
 penguins.columns
 ```
 
-It's also possible to print out the row-index of the data frame using the `index` attribute. 
-
+We can also use `pd.set_option`: 
 
 ```{python}
-penguins.index
+# 20 is the maximum number of column that we want to see
+# obviously we have less than 20 columns
+pd.set_option('max_columns', 100) 
+penguins.head()
 ```
 
 
-The `info()` method is a pretty cool tool that helps get an overall understanding of the structure of our data. It prints out in order: 
+The `info()` method is a pretty cool tool that helps get an overall understanding of the structure of our data. It prints out in order:
 
-- The class of the data frame : `DataFrame` 
-- The range of the index: `344` rows
-- The number of __non-missing__ values, here spotted as `non-null` 
-- The type of each column or `Dtype`. Here we have two types of columns: 
-  1. `object`: you can think of it as a character string column; 
-  2. `float64`: a numeric column
-- Lastly, we get the `memory usage` which provides an idea about the memory size of our data frame. 
+-   The class of the data frame : `DataFrame`
 
+-   The range of the index: `344` rows
+
+-   The number of **non-missing** values, here spotted as `non-null`
+
+-   The type of each column or `Dtype`. Here we have two types of columns:
+
+    1.  `object`: you can think of it as a character string column;
+    2.  `float64`: a numeric column
+
+-   Lastly, we get the `memory usage` which provides an idea about the memory size of our data frame.
 
 ```{python}
 penguins.info()
-
 ```
- 
 
+# Selecting a column in pandas
 
-# Selecting a column in pandas 
+There are two ways of selecting columns in `pandas`, we can do:
 
-There are two ways of selecting columns in `pandas`, we can do: 
-
-1. `df['column_name']` or: 
-2. `df.column_name`.
+1.  `df['column_name']` or:
+2.  `df.column_name`.
 
 for many reasons that will become obvious later, you should always use the first syntax.
 
-
-In our example, let's say that we wanted to select the `species` column, we can do: 
+In our example, let's say that we wanted to select the `species` column, we can do:
 
 ```{python}
-
 penguins['species']
-
 ```
 
-__Important__ `r emo::ji('alembic')` : a column taken individually has a special form and a special type called `pandas Series`. To summarize a `pandas` data frame has a `DataFrame` class and is composed of several columns that taken __individually__ have a `Series` class. 
+**Important** `r emo::ji('alembic')` : a column taken individually has a special form and a special type called `pandas Series`. To summarize a `pandas` data frame has a `DataFrame` class and is composed of several columns that taken **individually** have a `Series` class.
 
 ```{python}
 type(penguins['species'])
 ```
 
-
 Now let's select multiple columns, maybe `species`, `island` and `bill_length_mm`.
-
 
 ```{python, error=TRUE}
 penguins['species', 'island', 'bill_length_mm']
-
 ```
 
-We got an error `r emo::ji('angry')` !!! what happened ? in fact there is a dialogue here: 
+We got an error ! a `KeyError` `r emo::ji('angry')` !!! what happened ? in fact there is a dialogue here:
 
-> pandas: you want to select multiple column ? 
-> me: Yes! please !!!
-> pandas: OK! but I want a __list []__ of columns, in other words, the columns must be provided inside a list ! otherwise you'll get an error !!!!
-> me: emo::ji('unamused')
++ pandas: you want to select multiple column ? 
++ me: Yes! please !!! 
++ pandas: OK! but I want a **list []** of columns, in other words, the columns must be provided inside a list ! otherwise you'll get an error !!!! 
++ me: `r emo::ji('unamused')`
 
-
-So the correct way of subsetting columns is: 
+So the correct way of subsetting columns is:
 
 ```{python}
 penguins[['species', 'island', 'bill_length_mm']]
-
 ```
 
 Works like a charm `r emo::ji('unamused')`
 
-# Removing a column 
+# Removing a column
 
+We've a perfect data frame to play, why would we dare remove a column or two ??? just for the sake of the example ... ok that's was the joke of the day, now let's get into serious stuffs.
 
-We've a perfect data frame to play, why would we dare remove a column or two ??? just for the sake of the example ... ok that's was the joke of the day, now let's get into serious stuffs. 
-
-The `drop()` method allows us to remove the columns that we specify. Let's get rid of `species` and `island`: 
+The `drop()` method allows us to remove the columns that we specify. Let's get rid of `species` and `island`:
 
 ```{python}
 penguins_drop = penguins.drop(columns= ['species', 'island'])
 penguins_drop.head(5)
 ```
 
+**Important** `r emo::ji('alembic')`: many `pandas` method have the `inplace` parameter that takes a boolean as argument. By defaut it is set to `False`, so that we need to create a new variable in order to keep the outcome of the methods. Setting `inplace = True` would apply __directly__ the changes to the original data frame without the need to create a variable.
 
-# Renaming columns 
 
-When renaming a column, `pandas` expect that you define a `dictionary` as follows: 
+# Renaming columns
+
+When renaming a column, `pandas` expect that you define a `dictionary` as follows:
 
 `{'current_name' : 'new_name'}`
 
-So if for example, we wanted to change the name of `species` and  `island` to respectively `penguin_name` and `land`, we can proceed as follows: 
-
+So if for example, we wanted to change the name of `species` and `island` to respectively `penguin_name` and `land`, we can proceed as follows:
 
 ```{python, message = FALSE, message=FALSE, warning=FALSE}
 penguins.rename({'species': 'penguin_name', 'island':'land'}, 
-                axis = 'columns')
+                axis = 'columns', 
+                inplace = True)
+penguins.head()
 ```
-and voila ! here we had to set `axis = 'columns'` to specify that we're renaming columns not indexes (which is the default)
+
+and voila ! here we had to set `axis = 'columns'` to specify that we're renaming columns not indexes (which is the default). Note that we didn't have to create a variable to keep the outcome of the `rename` method thanks to `inplace` parameter.
+
+It is also easy to add `prefix` and `suffix` characters to column names. It's a bit silly but let us add a `<<<` in front of all column names: 
+
+```{python}
+penguins.add_prefix('<<<')
+```
+
+Same thing with `add_suffix`: 
+
+```{python}
+penguins.add_suffix('>>>')
+```
+
+and finally, we can do both: 
+
+
+```{python}
+print(penguins.add_prefix('<<<').add_suffix('>>>'))
+```
+
+What we did here is called `method chaining`. We applied the `add_suffix` method on the result of `penguins.add_prefix('<<<')`. 
+
+
+
+
+# Rows slicing 
+
+
+There are two methods available in the `pandas` library to slice rows: `loc` and `iloc`. There is a subtle difference between the two: 
+
++ `loc` allows you to slice rows using the index __label__;
++ `iloc` instead is integer position based and allows row slicing the same way we slice `lists` objects.
+
+It's a bit confusing I know, let's dive into an example to illustrate those differences. Let's say we want to get the rows 0, 11 and 31 from our data frame: 
+
+```{python}
+
+penguins.iloc[[0, 11, 31]]
+
+```
+
+Pretty simple right ? now what if wanted to subset all the rows from 250 to the last row (343): 
+
+
+```{python}
+penguins.iloc[250:]
+```
+
+We can also easily subset the last 10 rows: 
+
+```{python}
+penguins.iloc[-10:]
+```
+
+
+Now let's play a little bit with `loc`. If we run the same code as previously we get the same results: 
+
+
+```{python}
+
+penguins.loc[[0, 11, 31]]
+
+```
+
+Why is that ? simply because in our case index __labels__ and __values__ are exactly the same. Now let's change and see what happens, we'll set the `penguin_name` column as our new data frame index: 
+
+```{python}
+
+indexed_penguins = penguins.set_index('penguin_name')
+
+indexed_penguins.head()
+
+```
+
+The modifications are visible but we can double check: 
+
+Here the indexes of `penguins`: 
+
+```{python}
+penguins.index
+```
+And below the indexes of `indexed_penguins`: 
+
+```{python}
+indexed_penguins.index
+```
+
+Now if we use `loc`, we'll get a `KeyError`: 
+
+
+```{python, error = TRUE}
+indexed_penguins.loc[[0, 11, 31]]
+```
+To work with `loc` we need to provide the index __label__: 
+
+```{python, error = TRUE}
+indexed_penguins.loc["Chinstrap"]
+```
+
+Nevertheless, `iloc` works perfectly. It doesn't care about the index label, it only focuses on the index position (from 0 to n-1 rows):
+
+
+```{python}
+indexed_penguins.iloc[[0, 11, 31]]
+```
+
+
+Note that both `loc` and `iloc` allow you to subset rows and columns. To get the first 10 rows and the last two column, we can do: 
+
+```{python}
+# remember that -1 is the integer index of last column
+penguins.iloc[10:, [-2, -1]]
+```
+
+A quick drawback for `iloc` is that it's not possible to use column names to subset a data frame, so the following code will throw an error:
+
+```{python, error=TRUE}
+
+penguins.iloc[10:, ['sex', 'year']]
+
+```
+
+On the other hand, `loc` does permit column subsetting by names: 
+
+
+```{python}
+penguins.loc[10:, ['sex', 'year']]
+```
+
+
